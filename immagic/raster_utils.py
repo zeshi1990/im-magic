@@ -446,7 +446,8 @@ class RasterUtils(object):
                   hdf5_geotrans[5])
 
         if isinstance(hdf5_idx, list):
-            for temp_idx, temp_dst_fn in zip(hdf5_idx, dst_fn):
+            idx_list = range(len(hdf5_idx))
+            for temp_idx, temp_dst_fn in zip(idx_list, dst_fn):
                 temp_hdf5_img = hdf5_img[temp_idx]
                 temp_hdf5_img[temp_hdf5_img < nodata] = 0.
                 temp_hdf5_img[polygon_mask == 0.] = -9999.
