@@ -11,28 +11,48 @@ rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in xrange(n)
 class RasterBrewer(object):
 
     def __init__(self, username, pkey_path):
+        """
+        Intialize the RasterBrewer instance
+
+        Parameters
+        ----------
+
+        username : str, username of your glasercompserver account
+
+        pkey_path : str, private key directory on your local machine
+
+        """
         host = "glaser.berkeley.edu"
         port = 5441
-        self.username = username
-        self.rsakey = RSAKey.from_private_key_file(pkey_path)
-        self.transport = Transport((host, port))
-        self.transport.connect(username=self.username, pkey=self.rsakey)
-        self.sftp = SFTPClient.from_transport(self.transport)
+        self._username = username
+        self._rsakey = RSAKey.from_private_key_file(pkey_path)
+        self._transport = Transport((host, port))
+        self._transport.connect(username=self._username, pkey=self._rsakey)
+        self._sftp = SFTPClient.from_transport(self._transport)
 
     def __del__(self):
-        self.sftp.close()
-        self.transport.close()
+        self._sftp.close()
+        self._transport.close()
 
     def listdir(self, path, recursive=True):
         """
-        List out the directory you are looking at
-        :param path:
-        :param recursive:
-        :return:
+        List out the directory specified
+
+        Parameters
+        ----------
+
+        path : str, absolute path on glasercompserver
+
+        recursive : bool, If True show the path tree recursively, else show files and directories in the folder
+
+        Returns
+        -------
+
+        None
         """
         def _listdir(p, i):
             try:
-                ds = self.sftp.listdir(path=p)
+                ds = self._sftp.listdir(path=p)
             except IOError:
                 return 0
             if i == "":
@@ -51,7 +71,7 @@ class RasterBrewer(object):
             _listdir(path, i=indent)
         else:
             try:
-                dirs = self.sftp.listdir(path=path)
+                dirs = self._sftp.listdir(path=path)
             except IOError:
                 print "{0} is not a directory".format(path)
                 return
@@ -59,9 +79,22 @@ class RasterBrewer(object):
                 print "{0}{1}".format(indent, temp_dir)
 
     def fetch_raster(self, src_path):
+        """
+        Fetch a raster file from the remote directory and open it in gdal
+
+        Parameters
+        ----------
+
+        src_path : str, path of the source file on the remote
+
+        Returns
+        -------
+
+        ds : gdal.Dataset
+
+        """
         dst_path = "/tmp/{0}".format(os.path.basename(src_path))
-        self.sftp.get(src_path, dst_path)
+        self._sftp.get(src_path, dst_path)
         ds = gdal.Open(dst_path)
         os.remove(dst_path)
         return ds
-

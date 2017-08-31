@@ -132,4 +132,3 @@ class RasterDataSet(object):
             return self
         else:
             return self.__add__(other)
-
