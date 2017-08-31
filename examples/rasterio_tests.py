@@ -49,8 +49,22 @@ def resample_data_test():
                                      dst_epsg=4326, src_nodata=nodata, dst_nodata=-9999.)
 
 
-if not os.path.exists("/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed"):
-    os.mkdir("/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed")
-RU.delineate_raster_to_polygon("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem_resampled.tif",
-                               "/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed/fr_watershed.shp",
-                               "feather_river")
+def delineate_feather_test():
+    if not os.path.exists("/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed"):
+        os.mkdir("/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed")
+    RU.delineate_raster_to_polygon("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem_resampled.tif",
+                                   "/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed/fr_watershed.shp",
+                                   "feather_river")
+
+
+def paramiko_test():
+    from paramiko import Transport, SFTPClient, RSAKey
+    host = "glaser.berkeley.edu"
+    port = 5441
+    transport = Transport((host, port))
+    pkey = RSAKey.from_private_key_file("/Users/zeshizheng/.ssh/id_rsa")
+    transport.connect(username="zeshi", pkey=pkey)
+    sftp = SFTPClient.from_transport(transport)
+    sftp.get("/media/raid0/zeshi/eric.zip", "/Users/zeshizheng/Google Drive/dev/im-magic/data/eric.zip")
+    sftp.close()
+    transport.close()
