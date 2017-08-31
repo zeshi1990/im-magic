@@ -281,6 +281,35 @@ class RasterUtils(object):
         return 0
 
     @classmethod
+    def clip_raster(cls, src_fn, dst_fn, ulx, uly, lrx, lry):
+        opts = gdal.WarpOptions(outputBounds=[ulx, uly, lrx, lry])
+        gdal.Warp(dst_fn, src_fn, options=opts)
+        return 0
+
+    @classmethod
+    def dem_to_slope(cls, dem_fn, slope_fn, scale=None):
+        if scale:
+            opts = gdal.DEMProcessingOptions(computeEdges=True, slopeFormat='degree', scale=scale)
+        else:
+            opts = gdal.DEMProcessingOptions(computeEdges=True, slopeFormat='degree')
+        gdal.DEMProcessing(slope_fn, dem_fn, processing="slope", options=opts)
+        return 0
+
+    @classmethod
+    def dem_to_aspect(cls, dem_fn, aspect_fn):
+        opts = gdal.DEMProcessingOptions(computeEdges=True)
+        gdal.DEMProcessing(dem_fn, aspect_fn, processing="aspect", options=opts)
+        return 0
+
+    @classmethod
+    def dem_to_watershed(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def dem_to_twi(cls):
+        raise NotImplementedError
+
+    @classmethod
     def show_map(cls, fn):
         raise NotImplementedError
 
