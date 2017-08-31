@@ -60,22 +60,17 @@ class RasterUtils(object):
 
         Parameters
         ----------
-
         fn : str, hdf5 file name
-
         hdf5_idx : int, the index of the image slice in the hdf5 data cube
-
         hdf5_arr : str, hdf5 image array field code
-
         hdf5_lat : str, hdf5 image array latitude coordinate code
-
         hdf5_lon : str, hdf5 image array longitude coordinate code
 
         Returns
         -------
-
         array : The slice image
         geotrans : the image's geotransform.
+
         """
         # Load hdf5 dataset using xarray rather than gdal
         ds = xarray.open_dataset(fn)
@@ -106,7 +101,6 @@ class RasterUtils(object):
 
         Parameters
         ----------
-
         No params
 
         Returns
@@ -124,13 +118,12 @@ class RasterUtils(object):
 
         Parameters
         ----------
-
         fn : str, hdf5 data set file name.
 
         Returns
         -------
-
         xarray data set of the hdf5 data
+
         """
         ds = xarray.open_dataset(fn)
         return ds
@@ -142,20 +135,35 @@ class RasterUtils(object):
 
         Parameters
         ----------
-
         epsg : int
 
         Returns
         -------
-
         str, EPSG detailed information
+
         """
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(epsg)
         return srs.ExportToWkt()
 
     @classmethod
-    def delineate_raster_to_polygon(cls, src_fn, dst_fn, name, epsg=4326):
+    def delineate_raster_to_polygon(cls, src_fn, dst_fn, name, dst_epsg=4326):
+        """
+        Delineate the boundary of the raster data file to polygon
+
+        Parameters
+        ----------
+        src_fn : str, source raster filename
+        dst_fn : str, destination polygon filename
+        name : str, name of the polygon (for example, if the polygon represents American River basin then the name
+               will be american river.
+        dst_epsg : int, epsg code
+
+        Returns
+        -------
+        0
+
+        """
         # Load data
         ds = gdal.Open(src_fn)
         assert isinstance(ds, gdal.Dataset)
@@ -183,7 +191,7 @@ class RasterUtils(object):
         driver = ogr.GetDriverByName('Esri Shapefile')
         ds = driver.CreateDataSource(dst_fn)
         dest_srs = ogr.osr.SpatialReference()
-        dest_srs.ImportFromEPSG(epsg)
+        dest_srs.ImportFromEPSG(dst_epsg)
         layer = ds.CreateLayer('', dest_srs, ogr.wkbPolygon)
 
         # Add one attribute
@@ -208,14 +216,21 @@ class RasterUtils(object):
                                       dst_epsg=None, src_nodata=-9999., dst_nodata=-9999.):
         """
         Resample a raster file to destination resolution and destination epsg projection
-        :param src_fn:
-        :param dst_fn:
-        :param x_res:
-        :param y_res:
-        :param dst_epsg:
-        :param src_nodata:
-        :param dst_nodata:
-        :return:
+
+        Parameters
+        ----------
+        src_fn : str, source filename
+        dst_fn : str, destination filename
+        x_res : float, new x resolution
+        y_res : float, new y resolution
+        dst_epsg : int, destination epsg code
+        src_nodata : float, source raster nodata value
+        dst_nodata : float, destination raster nodata value (remember glaserlab protocol requires nodata to be -9999.
+
+        Returns
+        -------
+        0
+
         """
         warpopts = gdal.WarpOptions(xRes=x_res, yRes=y_res, srcNodata=src_nodata, dstNodata=dst_nodata,
                                     dstSRS=None if dst_epsg is None else 'EPSG:{0}'.format(dst_epsg))
@@ -224,6 +239,20 @@ class RasterUtils(object):
 
     @classmethod
     def calculate_new_geotransform(cls, src_gt, ix_y, ix_x):
+        """
+        Calculate new geotransform information when clipping the raster image from [ix_y:yyy, ix_x:xxx]
+
+        Parameters
+        ----------
+        src_gt : source file geotransform
+        ix_y : starting y index
+        ix_x : starting x index
+
+        Returns
+        -------
+        new geotransform tuple
+
+        """
         return (src_gt[0] + ix_x * src_gt[1],
                 src_gt[1], src_gt[2],
                 src_gt[3] + ix_y * src_gt[5],
@@ -237,13 +266,9 @@ class RasterUtils(object):
 
         Parameters
         ----------
-
         dst_fn :
-
         arr :
-
         proj :
-
         geotransform :
 
         Returns
@@ -282,6 +307,18 @@ class RasterUtils(object):
     def reproject_raster(cls, src_fn, match_fn, dst_fn, gra_type=GRA_Bilinear):
         """
         Reproject a raster with reference of a matching raster data
+
+        Parameters
+        ----------
+        src_fn :
+        match_fn :
+        dst_fn :
+        gra_type :
+
+        Returns
+        -------
+        0
+
         """
 
         # Source
@@ -312,6 +349,22 @@ class RasterUtils(object):
 
     @classmethod
     def clip_raster(cls, src_fn, dst_fn, ulx, uly, lrx, lry):
+        """
+        Clip a raster based on its upperleft coord and lowerright coord
+
+        Parameters
+        ----------
+        src_fn:
+        dst_fn:
+        ulx:
+        uly:
+        lrx:
+        lry:
+
+        Returns
+        -------
+        0
+        """
         opts = gdal.WarpOptions(outputBounds=[ulx, lry, lrx, uly])
         gdal.Warp(dst_fn, src_fn, options=opts)
         return 0
@@ -325,7 +378,6 @@ class RasterUtils(object):
         array[array == src_nodata] = -9999.
         cls.write_array_to_raster(src_fn, array, proj=proj, geotransform=gt)
         return 0
-
 
     @classmethod
     def dem_to_slope(cls, dem_fn, slope_fn, scale=None):
@@ -437,27 +489,20 @@ class RasterUtils(object):
         Parameters
         ----------
         hdf5_fn : str, hdf5 file name, the hdf5_fn must have a WGS84 projection (EPSG 4326)
-
         mask_shapefile_fn : str, masking polygon shapefile
-
         match_raster_fn : str, matching extent raster file
-
         dst_fn : str or list(str), saving destination file name(s)
-
         hdf5_arr : str, hdf5 image array field
-
         hdf5_lat : str, hdf5 image latitude field
-
         hdf5_lon : str, hdf5 image longitude field
-
         hdf5_idx : int or list(int), the index/indices of the first dimension of the hdf5 array
-
         buffer_size : int, the buffer of the intermediate tmp file
-
         nodata : float, the nodata value for the hdf5 data set
 
         Returns
         -------
+        0
+
         """
         # Load the hdf5 image as the specified slice
         LOGGER.debug("START LOADING HDF5 FILE: {0}".format(os.path.basename(hdf5_fn)))
