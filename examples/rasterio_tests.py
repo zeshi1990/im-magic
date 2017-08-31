@@ -3,6 +3,7 @@ import string
 import random
 import unittest
 from datetime import date, timedelta
+import urllib2
 
 import gdal
 import numpy as np
@@ -68,3 +69,13 @@ def paramiko_test():
     sftp.get("/media/raid0/zeshi/eric.zip", "/Users/zeshizheng/Google Drive/dev/im-magic/data/eric.zip")
     sftp.close()
     transport.close()
+
+
+def epsg_test():
+    epsg_wkt = RU.get_epsg(4326)
+    data = urllib2.urlopen("http://spatialreference.org/ref/epsg/wgs-84/prettywkt/")
+    wkt = ""
+    for line in data.readlines():
+        wkt += line[:-1].strip()
+    print wkt
+    print epsg_wkt

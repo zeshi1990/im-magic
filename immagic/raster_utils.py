@@ -136,6 +136,25 @@ class RasterUtils(object):
         return ds
 
     @classmethod
+    def get_epsg(cls, epsg):
+        """
+        Get detailed projection information for a EPSG code
+
+        Parameters
+        ----------
+
+        epsg : int
+
+        Returns
+        -------
+
+        str, EPSG detailed information
+        """
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(epsg)
+        return srs.ExportToWkt()
+
+    @classmethod
     def delineate_raster_to_polygon(cls, src_fn, dst_fn, name, epsg=4326):
         # Load data
         ds = gdal.Open(src_fn)
@@ -338,7 +357,7 @@ class RasterUtils(object):
         return s, r
 
     @classmethod
-    def get_epsg(cls, fn):
+    def get_raster_epsg(cls, fn):
         """
         Get the EPSG code of the raster data
 
@@ -378,6 +397,12 @@ class RasterUtils(object):
         warpopts = gdal.WarpOptions(dstSRS='EPSG:{0}'.format(dst_epsg))
         gdal.Warp(dst_fn, src_fn, options=warpopts)
         return 0
+
+    @classmethod
+    def mask_raster(cls, src_fn, mask_shapefile_fn):
+        LOGGER.debug("START LOADING RASTER FILE : ".format(os.path.basename(src_fn)))
+        # First need to reproject src_fn
+        raise NotImplementedError
 
     @classmethod
     def mask_hdf5(cls, hdf5_fn, mask_shapefile_fn, match_raster_fn, dst_fn,
@@ -448,7 +473,7 @@ class RasterUtils(object):
         tmp_fn = "/tmp/rt_{0}.tif".format(rand_str(12))
         tmp_bool = False
         try:
-            rt_match_epsg = cls.get_epsg(match_raster_fn)
+            rt_match_epsg = cls.get_raster_epsg(match_raster_fn)
         except Exception as e:
             LOGGER.debug(e)
             rt_match_epsg = None
