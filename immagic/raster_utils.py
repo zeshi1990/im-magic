@@ -266,14 +266,14 @@ class RasterUtils(object):
 
         Parameters
         ----------
-        dst_fn :
-        arr :
-        proj :
-        geotransform :
+        dst_fn : str, destination filename to write the array to
+        arr : numpy.ndarray, image array
+        proj : str, projection in wkt format
+        geotransform : tuple, geotransform tuple, len(geotransform) = 6
 
         Returns
         -------
-
+        0
 
         """
 
@@ -310,10 +310,10 @@ class RasterUtils(object):
 
         Parameters
         ----------
-        src_fn :
-        match_fn :
-        dst_fn :
-        gra_type :
+        src_fn : str, source filename to reproject from
+        match_fn : str, match filename that the reprojected file's projection and geotransform will match with it
+        dst_fn : str, destination filename that the raster will save to
+        gra_type : int, gdal.GRA_***
 
         Returns
         -------
@@ -354,12 +354,12 @@ class RasterUtils(object):
 
         Parameters
         ----------
-        src_fn:
-        dst_fn:
-        ulx:
-        uly:
-        lrx:
-        lry:
+        src_fn : str,
+        dst_fn : str,
+        ulx : float,
+        uly : float,
+        lrx : float,
+        lry : float,
 
         Returns
         -------
@@ -371,6 +371,12 @@ class RasterUtils(object):
 
     @classmethod
     def reset_raster_nodata(cls, src_fn, src_nodata):
+        """
+
+        :param src_fn:
+        :param src_nodata:
+        :return:
+        """
         ds = gdal.Open(src_fn, GA_ReadOnly)
         array = ds.ReadAsArray()
         proj = ds.GetProjection()
