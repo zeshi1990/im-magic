@@ -301,9 +301,20 @@ class RasterUtils(object):
 
     @classmethod
     def clip_raster(cls, src_fn, dst_fn, ulx, uly, lrx, lry):
-        opts = gdal.WarpOptions(outputBounds=[ulx, uly, lrx, lry])
+        opts = gdal.WarpOptions(outputBounds=[ulx, lry, lrx, uly])
         gdal.Warp(dst_fn, src_fn, options=opts)
         return 0
+
+    @classmethod
+    def reset_raster_nodata(cls, src_fn, src_nodata):
+        ds = gdal.Open(src_fn, GA_ReadOnly)
+        array = ds.ReadAsArray()
+        proj = ds.GetProjection()
+        gt = ds.GetGeoTransform()
+        array[array == src_nodata] = -9999.
+        cls.write_array_to_raster(src_fn, array, proj=proj, geotransform=gt)
+        return 0
+
 
     @classmethod
     def dem_to_slope(cls, dem_fn, slope_fn, scale=None):
@@ -317,7 +328,7 @@ class RasterUtils(object):
     @classmethod
     def dem_to_aspect(cls, dem_fn, aspect_fn):
         opts = gdal.DEMProcessingOptions(computeEdges=True)
-        gdal.DEMProcessing(dem_fn, aspect_fn, processing="aspect", options=opts)
+        gdal.DEMProcessing(aspect_fn, dem_fn, processing="aspect", options=opts)
         return 0
 
     @classmethod

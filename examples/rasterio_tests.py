@@ -57,7 +57,6 @@ def delineate_feather_test():
                                    "/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed/fr_watershed.shp",
                                    "feather_river")
 
-
 def paramiko_test():
     from paramiko import Transport, SFTPClient, RSAKey
     host = "glaser.berkeley.edu"
@@ -79,3 +78,44 @@ def epsg_test():
         wkt += line[:-1].strip()
     print wkt
     print epsg_wkt
+
+
+def fr_data_enlarge():
+    sites = ["bkl", "grz", "hbg", "ktl"]
+    fr_dem_fn = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem.tif"
+    fr_veg_fn = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_veg.tif"
+    for site in sites:
+        old_dir = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_data/{0}".format(site)
+        new_dir = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_data/{0}_new".format(site)
+        if not os.path.exists(new_dir):
+            os.mkdir(new_dir)
+        # dem
+
+        print "{0} DEM".format(site)
+        old_fn = os.path.join(old_dir, "dem.tif")
+        new_fn = os.path.join(new_dir, "dem.tif")
+        old_ds = gdal.Open(old_fn)
+        old_gt = old_ds.GetGeoTransform()
+        old_shp = old_ds.ReadAsArray().shape
+        ulx = old_gt[0]
+        uly = old_gt[3]
+        lrx = old_gt[0] + old_gt[1] * (old_shp[1] + int(0.2 * old_shp[1]))
+        lry = old_gt[3] + old_gt[5] * (old_shp[0] + int(0.2 * old_shp[0]))
+        RU.clip_raster(fr_dem_fn, new_fn, ulx, uly, lrx, lry)
+
+        # slope
+        print "{0} SLOPE".format(site)
+        new_slope_fn = os.path.join(new_dir, "slope.tif")
+        RU.dem_to_slope(new_fn, new_slope_fn, scale=108000)
+
+        # aspect
+        print "{0} ASPECT".format(site)
+        new_aspect_fn = os.path.join(new_dir, "aspect.tif")
+        RU.dem_to_aspect(new_fn, new_aspect_fn)
+
+        # vegetation
+        print "{0} VEG".format(site)
+        new_canopy_fn = os.path.join(new_dir, "canopy.tif")
+        RU.clip_raster(fr_veg_fn, new_canopy_fn, ulx, uly, lrx, lry)
+
+fr_data_enlarge()
