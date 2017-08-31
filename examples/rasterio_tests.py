@@ -38,3 +38,19 @@ def mask_hdf5_to_tif_test():
         temp_date_str = temp_date.strftime("%Y%m%d")
         dst_fns.append(dst_fn.format(temp_date_str))
     RU.mask_hdf5(hdf5_fn, mask_shp, match_raster, dst_fns, hdf5_idx=range(364, 366))
+
+
+def resample_data_test():
+    test_fn = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem.tif"
+    test_data = gdal.Open(test_fn)
+    nodata = test_data.GetRasterBand(1).GetNoDataValue()
+    dst_fn = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem_resampled.tif"
+    RU.resample_raster_by_resolution(test_fn, dst_fn, 0.001, 0.001,
+                                     dst_epsg=4326, src_nodata=nodata, dst_nodata=-9999.)
+
+
+if not os.path.exists("/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed"):
+    os.mkdir("/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed")
+RU.delineate_raster_to_polygon("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem_resampled.tif",
+                               "/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed/fr_watershed.shp",
+                               "feather_river")
