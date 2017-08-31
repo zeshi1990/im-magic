@@ -206,6 +206,17 @@ class RasterUtils(object):
     @classmethod
     def resample_raster_by_resolution(cls, src_fn, dst_fn, x_res, y_res,
                                       dst_epsg=None, src_nodata=-9999., dst_nodata=-9999.):
+        """
+        Resample a raster file to destination resolution and destination epsg projection
+        :param src_fn:
+        :param dst_fn:
+        :param x_res:
+        :param y_res:
+        :param dst_epsg:
+        :param src_nodata:
+        :param dst_nodata:
+        :return:
+        """
         warpopts = gdal.WarpOptions(xRes=x_res, yRes=y_res, srcNodata=src_nodata, dstNodata=dst_nodata,
                                     dstSRS=None if dst_epsg is None else 'EPSG:{0}'.format(dst_epsg))
         gdal.Warp(dst_fn, src_fn, options=warpopts)
