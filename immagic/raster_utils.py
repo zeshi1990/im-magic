@@ -387,6 +387,13 @@ class RasterUtils(object):
 
     @classmethod
     def dem_to_slope(cls, dem_fn, slope_fn, scale=None):
+        """
+        Processing DEM and convert it to slope
+        :param dem_fn:
+        :param slope_fn:
+        :param scale:
+        :return:
+        """
         if scale:
             opts = gdal.DEMProcessingOptions(computeEdges=True, slopeFormat='degree', scale=scale)
         else:
@@ -396,6 +403,12 @@ class RasterUtils(object):
 
     @classmethod
     def dem_to_aspect(cls, dem_fn, aspect_fn):
+        """
+        Processing DEM and convert it to aspect
+        :param dem_fn:
+        :param aspect_fn:
+        :return:
+        """
         opts = gdal.DEMProcessingOptions(computeEdges=True)
         gdal.DEMProcessing(aspect_fn, dem_fn, processing="aspect", options=opts)
         return 0
@@ -462,16 +475,14 @@ class RasterUtils(object):
 
         Parameters
         ----------
-        src_fn :
-
-        dst_epsg :
-
-        dst_fn :
+        src_fn : str, source filename, you know what does it mean
+        dst_epsg : int, integer
+        dst_fn : str, destination filename, you know what does it mean
 
         Returns
         -------
+        0
 
-        None
         """
         assert isinstance(gdal.Open(src_fn), gdal.Dataset), "{0} is not a valid gdal raster data set".format(src_fn)
         warpopts = gdal.WarpOptions(dstSRS='EPSG:{0}'.format(dst_epsg))
@@ -481,7 +492,8 @@ class RasterUtils(object):
     @classmethod
     def mask_raster(cls, src_fn, mask_shapefile_fn):
         LOGGER.debug("START LOADING RASTER FILE : ".format(os.path.basename(src_fn)))
-        # First need to reproject src_fn
+        # First need to reproject src_fn to epsg if needed because all the polygons are projected to EPSG 4326 code
+        # Then we should
         raise NotImplementedError
 
     @classmethod
