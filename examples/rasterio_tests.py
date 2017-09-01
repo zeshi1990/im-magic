@@ -57,6 +57,7 @@ def delineate_feather_test():
                                    "/Users/zeshizheng/Google Drive/dev/im-magic/data/fr_watershed/fr_watershed.shp",
                                    "feather_river")
 
+
 def paramiko_test():
     from paramiko import Transport, SFTPClient, RSAKey
     host = "glaser.berkeley.edu"
@@ -118,4 +119,16 @@ def fr_data_enlarge():
         new_canopy_fn = os.path.join(new_dir, "canopy.tif")
         RU.clip_raster(fr_veg_fn, new_canopy_fn, ulx, uly, lrx, lry)
 
-fr_data_enlarge()
+
+def resample_tuolumne_dem_test():
+    RU.resample_raster_by_resolution("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/Tuolumne_2014_bareDEM_3p0m_agg_EXPORT.tif",
+                                     "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/Tuolumne_2014_bareDEM_0p001deg_agg_EXPORT.tif",
+                                     x_res=0.001, y_res=0.001, dst_epsg=4326)
+
+
+def delineate_tuolumne_dem():
+    RU.delineate_raster_to_polygon("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/Tuolumne_2014_bareDEM_0p001deg_agg_EXPORT.tif",
+                                   "/Users/zeshizheng/Google Drive/dev/im-magic/data/tr_watershed/tr_watershed.shp",
+                                   name="tuolumne_river")
+
+delineate_tuolumne_dem()
