@@ -354,12 +354,12 @@ class RasterUtils(object):
 
         Parameters
         ----------
-        src_fn : str,
-        dst_fn : str,
-        ulx : float,
-        uly : float,
-        lrx : float,
-        lry : float,
+        src_fn : str, you know
+        dst_fn : str, you know
+        ulx : float, upperleft x, remember longitude is x
+        uly : float, upperleft y, remember latitude is y
+        lrx : float, lowerright x
+        lry : float, lowerright y
 
         Returns
         -------
@@ -372,10 +372,17 @@ class RasterUtils(object):
     @classmethod
     def reset_raster_nodata(cls, src_fn, src_nodata):
         """
+        Reset raster data's nodata
 
-        :param src_fn:
-        :param src_nodata:
-        :return:
+        Parameters
+        ----------
+        src_fn :
+        src_nodata :
+
+        Returns
+        -------
+        0
+
         """
         ds = gdal.Open(src_fn, GA_ReadOnly)
         array = ds.ReadAsArray()
@@ -389,10 +396,17 @@ class RasterUtils(object):
     def dem_to_slope(cls, dem_fn, slope_fn, scale=None):
         """
         Processing DEM and convert it to slope
-        :param dem_fn:
-        :param slope_fn:
-        :param scale:
-        :return:
+
+        Parameters
+        ----------
+        dem_fn :
+        slope_fn :
+        scale :
+
+        Returns
+        -------
+        0
+
         """
         if scale:
             opts = gdal.DEMProcessingOptions(computeEdges=True, slopeFormat='degree', scale=scale)
@@ -405,9 +419,16 @@ class RasterUtils(object):
     def dem_to_aspect(cls, dem_fn, aspect_fn):
         """
         Processing DEM and convert it to aspect
-        :param dem_fn:
-        :param aspect_fn:
-        :return:
+
+        Parameters
+        ----------
+        dem_fn :
+        aspect_fn :
+
+        Returns
+        -------
+        0
+
         """
         opts = gdal.DEMProcessingOptions(computeEdges=True)
         gdal.DEMProcessing(aspect_fn, dem_fn, processing="aspect", options=opts)
@@ -441,8 +462,8 @@ class RasterUtils(object):
         Returns
         -------
         s : shapes, a list of shapes
+        r : records, a list of json records
 
-        r :
         """
         sf = shapefile.Reader(fn)
         s = sf.shapes()
@@ -461,6 +482,7 @@ class RasterUtils(object):
         Returns
         -------
         The EPSG code of the raster data, int
+
         """
         ds = gdal.Open(fn)
         assert isinstance(ds, gdal.Dataset), "{0} is not a valid gdal raster data set".format(fn)
