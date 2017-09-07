@@ -108,7 +108,7 @@ class RasterUtils(object):
         The global dictionary of shape types.
 
         """
-        LOGGER.info("Get shape types of the data")
+        LOGGER.debug("Get shape types of the data")
         return SHAPETYPES
 
     @classmethod
@@ -367,6 +367,32 @@ class RasterUtils(object):
         """
         opts = gdal.WarpOptions(outputBounds=[ulx, lry, lrx, uly])
         gdal.Warp(dst_fn, src_fn, options=opts)
+        return 0
+
+    @classmethod
+    def clip_raster_by_idx(cls, src_fn, dst_fn, ulx_idx, uly_idx, lrx_idx, lry_idx):
+        """
+        Clip a raster based on its upperleft coord and lowerright coord
+
+        Parameters
+        ----------
+        src_fn : str, you know
+        dst_fn : str, you know
+        ulx : float, upperleft x, remember longitude is x
+        uly : float, upperleft y, remember latitude is y
+        lrx : float, lowerright x
+        lry : float, lowerright y
+
+        Returns
+        -------
+        0
+        """
+        gt = gdal.Open(src_fn).GetGeoTransform()
+        ulx = gt[0] + ulx_idx * gt[1]
+        uly = gt[3] + uly_idx * gt[5]
+        lrx = gt[0] + lrx_idx * gt[1]
+        lry = gt[3] + lry_idx * gt[5]
+        cls.clip_raster(src_fn, dst_fn, ulx, uly, lrx, lry)
         return 0
 
     @classmethod
