@@ -348,6 +348,47 @@ class RasterUtils(object):
         return 0
 
     @classmethod
+    def reproject_raster_to_mem(cls, src_fn, match_fn, gra_type=GRA_Bilinear):
+        """
+        Reproject a raster with reference of a matching raster data
+
+        Parameters
+        ----------
+        src_fn : str, source filename to reproject from
+        match_fn : str, match filename that the reprojected file's projection and geotransform will match with it
+        gra_type : int, gdal.GRA_***
+
+        Returns
+        -------
+        gdal.Dataset
+
+        """
+        # Source
+        src_ds = gdal.Open(src_fn, GA_ReadOnly)
+        assert isinstance(src_ds, gdal.Dataset), "{0} is not a valid gdal raster data set".format(src_fn)
+        src_proj = src_ds.GetProjection()
+        src_n_bands = src_ds.RasterCount
+
+        # We want a section of source that matches this:
+        match_ds = gdal.Open(match_fn, GA_ReadOnly)
+        assert isinstance(match_ds, gdal.Dataset), "{0} is not a valid gdal raster data set".format(match_fn)
+        match_proj = match_ds.GetProjection()
+        match_geotrans = match_ds.GetGeoTransform()
+        wide = match_ds.RasterXSize
+        high = match_ds.RasterYSize
+
+        # Output / destination
+        dst_ds = gdal.GetDriverByName("MEM").Create("", wide, high, src_n_bands, GDT_Float32)
+        dst_ds.SetGeoTransform(match_geotrans)
+        dst_ds.SetProjection(match_proj)
+        for b in range(src_n_bands):
+            dst_ds.GetRasterBand(b + 1).SetNoDataValue(-9999.)
+
+        # Do the work
+        gdal.ReprojectImage(src_ds, dst_ds, src_proj, match_proj, gra_type)
+        return dst_ds
+
+    @classmethod
     def clip_raster(cls, src_fn, dst_fn, ulx, uly, lrx, lry):
         """
         Clip a raster based on its upperleft coord and lowerright coord
