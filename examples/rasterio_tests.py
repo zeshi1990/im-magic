@@ -7,6 +7,7 @@ import urllib2
 
 import gdal
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 from skimage.feature import canny
 from skimage.measure import find_contours
@@ -131,4 +132,33 @@ def delineate_tuolumne_dem():
                                    "/Users/zeshizheng/Google Drive/dev/im-magic/data/tr_watershed/tr_watershed.shp",
                                    name="tuolumne_river")
 
-delineate_tuolumne_dem()
+
+def francesco_processing():
+    lower_met = pd.read_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/LowerMetNodes.csv")
+    upper_met = pd.read_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/UpperMetNodes.csv")
+    wsn_s, wsn_r = RU.load_shapefile("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/wireless_sensor_network/WSN.shp")
+    print wsn_s, wsn_r
+    x = []
+    y = []
+    field_1 = []
+    field_2 = []
+    field_3 = []
+    for s, r in zip(wsn_s, wsn_r):
+        print s.
+        x.append(s.points[0][0])
+        y.append(s.points[0][1])
+        field_1.append(r[0])
+        field_2.append(r[1])
+        field_3.append(r[2])
+    wsn_df = pd.DataFrame({"point_x":x,
+                           "point_y":y,
+                           "attribute_1": field_1,
+                           "attribute_2": field_2,
+                           "attribute_3": field_3})
+    raster_dir = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem"
+    hh = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem/output_hh.tif")
+    dem = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem/output_be.tif")
+    print dem.GetRasterBand(1).GetNoDataValue()
+    print hh.GetRasterBand(1).GetNoDataValue()
+
+francesco_processing()

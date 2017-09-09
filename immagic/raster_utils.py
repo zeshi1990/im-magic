@@ -518,24 +518,27 @@ class RasterUtils(object):
         raise NotImplementedError
 
     @classmethod
-    def load_shapefile(cls, fn):
+    def load_shapefile(cls, fn, fields=False):
         """
         Load shapefile's shapes and records
 
         Parameters
         ----------
         fn : str, shp-file file name
+        fields : bool, include fields in results or not
 
         Returns
         -------
         s : shapes, a list of shapes
         r : records, a list of json records
-
         """
         sf = shapefile.Reader(fn)
         s = sf.shapes()
         r = sf.records()
-        return s, r
+        if fields:
+            return s, r, sf.fields
+        else:
+            return s, r
 
     @classmethod
     def get_raster_epsg(cls, fn):
