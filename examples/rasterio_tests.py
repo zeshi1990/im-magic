@@ -9,6 +9,7 @@ import gdal
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from skimage.filters import gaussian
 from skimage.feature import canny
 from skimage.measure import find_contours
 
@@ -134,17 +135,27 @@ def delineate_tuolumne_dem():
 
 
 def francesco_processing():
+
+    def get_features(df, dict_arr, gt):
+        x = df["point_x"].as_matrix()
+        y = df["point_y"].as_matrix()
+        y_idx = np.floor((y - gt[3]) / gt[5]).astype(int)
+        x_idx = np.floor((x - gt[0]) / gt[1]).astype(int)
+        for key, arr in dict_arr.iteritems():
+            df[key] = arr[y_idx, x_idx]
+        return df
+
     lower_met = pd.read_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/LowerMetNodes.csv")
     upper_met = pd.read_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/UpperMetNodes.csv")
-    wsn_s, wsn_r = RU.load_shapefile("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/wireless_sensor_network/WSN.shp")
-    print wsn_s, wsn_r
+    wsn_s, wsn_r, fields = RU.load_shapefile("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/wireless_sensor_network/WSN.shp",
+                                     fields=True)
+    print fields
     x = []
     y = []
     field_1 = []
     field_2 = []
     field_3 = []
     for s, r in zip(wsn_s, wsn_r):
-        print s.
         x.append(s.points[0][0])
         y.append(s.points[0][1])
         field_1.append(r[0])
@@ -152,13 +163,34 @@ def francesco_processing():
         field_3.append(r[2])
     wsn_df = pd.DataFrame({"point_x":x,
                            "point_y":y,
-                           "attribute_1": field_1,
-                           "attribute_2": field_2,
-                           "attribute_3": field_3})
-    raster_dir = "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem"
+                           fields[1][0]: field_1,
+                           fields[2][0]: field_2,
+                           fields[3][0]: field_3})
     hh = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem/output_hh.tif")
     dem = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem/output_be.tif")
-    print dem.GetRasterBand(1).GetNoDataValue()
-    print hh.GetRasterBand(1).GetNoDataValue()
+    slp = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem/output_slp.tif")
+    asp = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/rasters_sdem/output_asp.tif")
+    dem_arr = dem.ReadAsArray()
+    hh_arr = hh.ReadAsArray()
+    slp_arr = slp.ReadAsArray()
+    slp_arr[slp_arr == slp.GetRasterBand(1).GetNoDataValue()] = np.nan
+    asp_arr = asp.ReadAsArray()
+    asp_arr[asp_arr == asp.GetRasterBand(1).GetNoDataValue()] = np.nan
+    plt.imshow(asp_arr)
+    plt.show()
+    dem_arr[dem_arr == dem.GetRasterBand(1).GetNoDataValue()] = np.nan
+    hh_arr[hh_arr == hh.GetRasterBand(1).GetNoDataValue()] = np.nan
+    chm_arr = hh_arr - dem_arr
+    chm_arr[chm_arr < 0.] = 0.
+    chm_arr[chm_arr > 150.] = 0.
+    blurred_binary_arr = gaussian((chm_arr >= 5.0).astype(float), sigma=5)
+    dem_gt = dem.GetGeoTransform()
+    features_dict = {"dem": dem_arr, "slp": slp_arr, "asp": asp_arr, "veg": blurred_binary_arr}
+    lower_met = get_features(lower_met, features_dict, dem_gt)
+    upper_met = get_features(upper_met, features_dict, dem_gt)
+    wsn_df = get_features(wsn_df, features_dict, dem_gt)
+    lower_met.to_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/lower_met_features.csv")
+    upper_met.to_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/upper_met_features.csv")
+    wsn_df.to_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/wsn_features.csv")
 
 francesco_processing()
