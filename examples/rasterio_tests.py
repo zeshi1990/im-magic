@@ -193,6 +193,16 @@ def francesco_processing():
     upper_met.to_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/upper_met_features.csv")
     wsn_df.to_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/wsn_features.csv")
 
+
 def reproject_nldas_test():
-    raise NotImplementedError
+    mem_ds = RU.reproject_raster_to_mem("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/nldas/"
+                                        "NLDAS_FORA0125_H.A20130101.0000.002.grb",
+                                        "/Users/zeshizheng/Google Drive/dev/im-magic/data/"
+                                        "rasters/amr_watershed.tif", gra_type=gdal.GRA_NearestNeighbour)
+    band = mem_ds.GetRasterBand(1)
+    print band.GetMetadata()
+    print band.ReadAsArray()
+
+reproject_nldas_test()
+
 

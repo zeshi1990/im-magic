@@ -383,7 +383,7 @@ class RasterUtils(object):
         dst_ds.SetProjection(match_proj)
         for b in range(src_n_bands):
             dst_ds.GetRasterBand(b + 1).SetNoDataValue(-9999.)
-
+            dst_ds.GetRasterBand(b + 1).SetMetadata(src_ds.GetRasterBand(b + 1).GetMetadata())
         # Do the work
         gdal.ReprojectImage(src_ds, dst_ds, src_proj, match_proj, gra_type)
         return dst_ds
