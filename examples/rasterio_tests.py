@@ -193,4 +193,6 @@ def francesco_processing():
     upper_met.to_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/upper_met_features.csv")
     wsn_df.to_csv("/Users/zeshizheng/Google Drive/dev/im-magic/data/francesco/wsn_features.csv")
 
-francesco_processing()
+def reproject_nldas_test():
+    raise NotImplementedError
+
