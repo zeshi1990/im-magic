@@ -195,14 +195,16 @@ def francesco_processing():
 
 
 def reproject_nldas_test():
+    gdal.SetConfigOption('GRIB_NORMALIZE_UNITS', 'NO')
     mem_ds = RU.reproject_raster_to_mem("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/nldas/"
                                         "NLDAS_FORA0125_H.A20130101.0000.002.grb",
                                         "/Users/zeshizheng/Google Drive/dev/im-magic/data/"
                                         "rasters/amr_watershed.tif", gra_type=gdal.GRA_NearestNeighbour)
-    band = mem_ds.GetRasterBand(1)
-    print band.GetMetadata()
-    print band.ReadAsArray()
-
+    ds = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/nldas/"
+                                        "NLDAS_FORA0125_H.A20130101.0000.002.grb")
+    for i in range(1, 12):
+        print i
+        print ds.GetRasterBand(i).GetMetadata()
 reproject_nldas_test()
 
 
