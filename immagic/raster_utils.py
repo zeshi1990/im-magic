@@ -348,7 +348,7 @@ class RasterUtils(object):
         return 0
 
     @classmethod
-    def reproject_raster_to_mem(cls, src_fn, match_fn, gra_type=GRA_Bilinear):
+    def reproject_raster_to_mem(cls, src, match, gra_type=GRA_Bilinear):
         """
         Reproject a raster with reference of a matching raster data
 
@@ -364,14 +364,22 @@ class RasterUtils(object):
 
         """
         # Source
-        src_ds = gdal.Open(src_fn, GA_ReadOnly)
-        assert isinstance(src_ds, gdal.Dataset), "{0} is not a valid gdal raster data set".format(src_fn)
+        if isinstance(src, gdal.Dataset):
+            src_ds = src
+        else:
+            assert isinstance(src, str)
+            src_ds = gdal.Open(src, GA_ReadOnly)
+        assert isinstance(src_ds, gdal.Dataset), "src is not a valid gdal raster data set"
         src_proj = src_ds.GetProjection()
         src_n_bands = src_ds.RasterCount
 
         # We want a section of source that matches this:
-        match_ds = gdal.Open(match_fn, GA_ReadOnly)
-        assert isinstance(match_ds, gdal.Dataset), "{0} is not a valid gdal raster data set".format(match_fn)
+        if isinstance(match, gdal.Dataset):
+            match_ds = match
+        else:
+            assert isinstance(match, str)
+            match_ds = gdal.Open(match, GA_ReadOnly)
+        assert isinstance(match_ds, gdal.Dataset), "match is not a valid gdal raster data set"
         match_proj = match_ds.GetProjection()
         match_geotrans = match_ds.GetGeoTransform()
         wide = match_ds.RasterXSize
