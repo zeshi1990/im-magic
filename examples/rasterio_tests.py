@@ -205,6 +205,18 @@ def reproject_nldas_test():
     for i in range(1, 12):
         print i
         print ds.GetRasterBand(i).GetMetadata()
-reproject_nldas_test()
+
+
+def mosaic_test():
+    warpopts = gdal.WarpOptions(format="MEM", dstSRS="EPSG:4326")
+    ds_1 = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/amr_watershed_clipped_reprojected.tif")
+    ds_2 = gdal.Open("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem_resampled.tif")
+    ds = gdal.Warp("", [ds_1, ds_2], options=warpopts)
+    print ds.ReadAsArray()
+    plt.imshow(ds.ReadAsArray())
+    plt.show()
+
+mosaic_test()
+
 
 
