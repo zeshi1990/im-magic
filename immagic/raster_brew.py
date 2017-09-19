@@ -98,3 +98,13 @@ class RasterBrewer(object):
         ds = gdal.Open(dst_path)
         os.remove(dst_path)
         return ds
+
+    def upload_raster(self, src_path, dst_path):
+        """
+        upload a raster file to the remote directory
+        :param src_path:
+        :param dst_path:
+        :return:
+        """
+        self._sftp.put(src_path, dst_path)
+        return 0
