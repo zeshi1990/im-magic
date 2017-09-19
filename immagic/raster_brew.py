@@ -86,7 +86,8 @@ class RasterBrewer(object):
         return self._sftp.listdir(path)
 
     def isdir(self, path):
-        l_path = self.listdir(os.path.join(path, ".."))
+        parent_dir = os.path.abspath(path).rsplit(os.path.sep, 1)[0]
+        l_path = self.listdir(parent_dir)
         return os.path.basename(path) in l_path
 
     def fetch_raster(self, src_path):
