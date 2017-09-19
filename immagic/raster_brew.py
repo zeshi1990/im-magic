@@ -78,6 +78,17 @@ class RasterBrewer(object):
             for temp_dir in dirs:
                 print "{0}{1}".format(indent, temp_dir)
 
+    def mkdir(self, path):
+        self._sftp.mkdir(path)
+        return 0
+
+    def listdir(self, path):
+        return self._sftp.listdir(path)
+
+    def isdir(self, path):
+        l_path = self.listdir(os.path.join(path, ".."))
+        return os.path.basename(path) in l_path
+
     def fetch_raster(self, src_path):
         """
         Fetch a raster file from the remote directory and open it in gdal
