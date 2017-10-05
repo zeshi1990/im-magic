@@ -213,7 +213,8 @@ class RasterUtils(object):
 
     @classmethod
     def resample_raster_by_resolution(cls, src_fn, dst_fn, x_res, y_res,
-                                      dst_epsg=None, src_nodata=-9999., dst_nodata=-9999.):
+                                      dst_epsg=None, src_nodata=-9999., dst_nodata=-9999.,
+                                      resampling_method=gdal.GRA_Average):
         """
         Resample a raster file to destination resolution and destination epsg projection
 
@@ -226,14 +227,15 @@ class RasterUtils(object):
         dst_epsg : int, destination epsg code
         src_nodata : float, source raster nodata value
         dst_nodata : float, destination raster nodata value (remember glaserlab protocol requires nodata to be -9999.
-
+        resampling_method: int, resampling method, default is gdal.GRA_Average
         Returns
         -------
         0
 
         """
         warpopts = gdal.WarpOptions(xRes=x_res, yRes=y_res, srcNodata=src_nodata, dstNodata=dst_nodata,
-                                    dstSRS=None if dst_epsg is None else 'EPSG:{0}'.format(dst_epsg))
+                                    dstSRS=None if dst_epsg is None else 'EPSG:{0}'.format(dst_epsg),
+                                    resampleAlg=resampling_method)
         gdal.Warp(dst_fn, src_fn, options=warpopts)
         return 0
 

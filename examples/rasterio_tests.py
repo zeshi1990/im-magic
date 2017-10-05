@@ -216,7 +216,12 @@ def mosaic_test():
     plt.imshow(ds.ReadAsArray())
     plt.show()
 
-mosaic_test()
+
+def clip_test():
+    RU.clip_raster("/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_mask_dem_resampled.tif",
+                   "/Users/zeshizheng/Google Drive/dev/im-magic/data/rasters/fr_watershed.tif",
+                   -121.658, 40.509, -121.658 + 1.557, 40.509 - 1.032)
+
 
 
 
