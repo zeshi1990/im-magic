@@ -178,8 +178,30 @@ class RasterUtils(object):
         array_binary = array.copy()
         array_binary[array_binary != nodata] = 1.
         array_binary[array_binary == nodata] = 0.
-        contour = find_contours(array_binary, level=0.5, fully_connected='high')[0]
-        contour = np.vstack((contour, contour[0]))
+        contour = find_contours(array_binary, level=0.5, fully_connected='high')
+        n = len(contour)
+        contour_combined = contour[0]
+        k = 1
+        # print(len(contour_combined))
+        for i in range(1, n):
+            # find the smallest distance between the end point of combined contour and the rest arrays in contour
+            # print(i)
+            l_dist = []
+            # print len(contour_combined)
+            for j in range(k, n):
+                dist = np.sqrt((contour_combined[-1, 1] - contour[j][0, 1]) ** 2 + \
+                               (contour_combined[-1, 0] - contour[j][0, 0]) ** 2)
+                l_dist.append(dist)
+            next_contour = np.argmin(np.array(l_dist))[0] + k
+            # print(next_contour)
+            contour_combined = np.vstack((contour_combined, contour[next_contour]))
+            if next_contour != k:
+                for j in reversed(range(k, next_contour - k)):
+                    contour[j + 1] = contour[j]
+            k += 1
+
+        # assert contour_combined[-1, :] == contour_combined[0, :]
+        contour = contour_combined
         y_coords = gt[3] + gt[5] * contour[:, 0]
         x_coords = gt[0] + gt[1] * contour[:, 1]
         coords = []
@@ -306,6 +328,50 @@ class RasterUtils(object):
         return 0
 
     @classmethod
+    def write_array_to_raster_memory(cls, arr, proj, geotransform):
+        """
+        Write an array to a GeoTIFF file which is stored to memory
+
+        Parameters
+        ----------
+
+        arr : numpy.ndarray, image array
+        proj : str, projection in wkt format
+        geotransform : tuple, geotransform tuple, len(geotransform) = 6
+
+        Returns
+        -------
+        dataset: serve as the return file
+        0
+
+        """
+
+        arr_shape = arr.shape
+        num_bands = 1
+
+        if len(arr_shape) != 2:
+            num_bands = arr_shape[-1]
+        else:
+            arr = arr[:, :, np.newaxis]
+
+        driver = gdal.GetDriverByName('MEM')
+
+        dataset = driver.Create(
+            "",
+            arr.shape[1],
+            arr.shape[0],
+            num_bands,
+            gdal.GDT_Float32)
+
+        dataset.SetGeoTransform(geotransform)
+        dataset.SetProjection(proj)
+        for i in range(num_bands):
+            band_idx = i + 1
+            dataset.GetRasterBand(band_idx).WriteArray(arr[:, :, i])
+            dataset.GetRasterBand(band_idx).SetNoDataValue(-9999.)
+        return dataset
+
+    @classmethod
     def reproject_raster(cls, src_fn, match_fn, dst_fn, gra_type=GRA_Bilinear):
         """
         Reproject a raster with reference of a matching raster data
@@ -358,8 +424,8 @@ class RasterUtils(object):
 
         Parameters
         ----------
-        src_fn : str, source filename to reproject from
-        match_fn : str, match filename that the reprojected file's projection and geotransform will match with it
+        src : str, source filename to reproject from
+        match : str, match filename that the reprojected file's projection and geotransform will match with it
         gra_type : int, gdal.GRA_***
 
         Returns
@@ -433,10 +499,10 @@ class RasterUtils(object):
         ----------
         src_fn : str, you know
         dst_fn : str, you know
-        ulx : float, upperleft x, remember longitude is x
-        uly : float, upperleft y, remember latitude is y
-        lrx : float, lowerright x
-        lry : float, lowerright y
+        ulx_idx : int, upperleft x, remember longitude is x
+        uly_idx : int, upperleft y, remember latitude is y
+        lrx_idx : int, lowerright x
+        lry_idx : int, lowerright y
 
         Returns
         -------
@@ -594,6 +660,27 @@ class RasterUtils(object):
         warpopts = gdal.WarpOptions(dstSRS='EPSG:{0}'.format(dst_epsg))
         gdal.Warp(dst_fn, src_fn, options=warpopts)
         return 0
+
+    @classmethod
+    def reproject_raster_by_epsg_memory(cls, src_fn, dst_epsg):
+        """
+        Reproject the raster data to another projection, based on its own EPSG and a new EPSG
+
+        Parameters
+        ----------
+        src_fn : str, source filename, you know what does it mean
+        dst_epsg : int, integer
+
+        Returns
+        -------
+        dst_f : return value, stored in memory
+        0
+
+        """
+        assert isinstance(gdal.Open(src_fn), gdal.Dataset), "{0} is not a valid gdal raster data set".format(src_fn)
+        warpopts = gdal.WarpOptions(format='MEM', dstSRS='EPSG:{0}'.format(dst_epsg))
+        dst_f = gdal.Warp("", src_fn, options=warpopts)
+        return dst_f
 
     @classmethod
     def mask_raster(cls, src_fn, mask_shapefile_fn):

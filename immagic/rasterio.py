@@ -33,14 +33,45 @@ class RasterDataSetUtils(object):
         raise NotImplementedError
 
     @classmethod
-    def reproject_raster(cls, src, match):
+    def reproject_raster(cls, src_ds, match_ds, gra_type=gdal.GRA_Bilinear):
         """
+         Reproject a raster with reference of a matching raster data
 
-        :param src:
-        :param match:
-        :return:
+         Parameters
+         ----------
+         src_ds : RasterDataSet, source filename to reproject from
+         match_ds : RasterDataSet, match filename that the reprojected file's projection and geotransform will
+                    match with it
+         gra_type : int, gdal.GRA_***
+
+         Returns
+         -------
+         dst_ds_rd: RasterDataSet
+
         """
-        raise NotImplementedError
+        # Source
+
+        src_proj = src_ds.ds.GetProjection()
+        src_n_bands = src_ds.ds.RasterCount
+
+        # We want a section of source that matches this:
+
+        match_proj = match_ds.ds.GetProjection()
+        match_geotrans = match_ds.ds.GetGeoTransform()
+        wide = match_ds.ds.RasterXSize
+        high = match_ds.ds.RasterYSize
+
+        # Output / destination
+        dst_ds = gdal.GetDriverByName("MEM").Create("", wide, high, src_n_bands, GDT_Float32)
+        dst_ds.SetGeoTransform(match_geotrans)
+        dst_ds.SetProjection(match_proj)
+        for b in range(src_n_bands):
+            dst_ds.GetRasterBand(b + 1).SetNoDataValue(-9999.)
+
+        # Do the work
+        gdal.ReprojectImage(src_ds.ds, dst_ds, src_proj, match_proj, gra_type)
+        dst_ds_rd = RasterDataSet(dst_ds)
+        return dst_ds_rd
 
     @classmethod
     def mask_raster(cls, src, mask, dst_epsg):
@@ -109,23 +140,96 @@ class RasterDataSet(object):
         return self.values
 
     def __add__(self, other):
+        """
+         to make an add algebra of rasterdata
+
+        :param other:
+        self:rasterdataset
+        other:rasterdataset of number
+
+        :return: the summation of two rasterdataset or a rasterdataset and a number
+
+        """
         assert isinstance(other, RasterDataSet) or isinstance(other, numbers.Number), \
             "other has to be a RasterDataSet or a numbers.Number type"
         if isinstance(other, numbers.Number):
-            new = copy.deepcopy(self)
-            new.values = None
+            self.values[self.values != -9999] += other
+            return self
         else:
-            pass
-        raise NotImplementedError
+            trans_rs_rd = RasterDataSetUtils.reproject_raster(other, self)
+            dst = self
+            dst.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)] += \
+                trans_rs_rd.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)]
+            return dst
 
     def __sub__(self, other):
-        raise NotImplementedError
+        """
+         to make a sub algebra of rasterdata
+
+        :param other:
+        self:rasterdataset
+        other:rasterdataset of number
+
+        :return: the summation of two rasterdataset or a rasterdataset and a number
+
+        """
+        assert isinstance(other, RasterDataSet) or isinstance(other, numbers.Number), \
+            "other has to be a RasterDataSet or a numbers.Number type"
+        if isinstance(other, numbers.Number):
+            self.values[self.values != -9999] -= other
+            return self
+        else:
+            trans_rs_rd = RasterDataSetUtils.reproject_raster(other, self)
+            dst = self
+            dst.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)] -= \
+                trans_rs_rd.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)]
+            return dst
 
     def __mul__(self, other):
-        raise NotImplementedError
+        """
+         to make a mul algebra of rasterdata
+
+        :param other:
+        self:rasterdataset
+        other:rasterdataset of number
+
+        :return: the summation of two rasterdataset or a rasterdataset and a number
+
+        """
+        assert isinstance(other, RasterDataSet) or isinstance(other, numbers.Number), \
+            "other has to be a RasterDataSet or a numbers.Number type"
+        if isinstance(other, numbers.Number):
+            self.values[self.values != -9999] *= other
+            return self
+        else:
+            trans_rs_rd = RasterDataSetUtils.reproject_raster(other, self)
+            dst = self
+            dst.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)] *= \
+                trans_rs_rd.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)]
+            return dst
 
     def __div__(self, other):
-        raise NotImplementedError
+        """
+         to make a div algebra of rasterdata
+
+        :param other:
+        self:rasterdataset
+        other:rasterdataset of number
+
+        :return: the summation of two rasterdataset or a rasterdataset and a number
+
+        """
+        assert isinstance(other, RasterDataSet) or isinstance(other, numbers.Number), \
+            "other has to be a RasterDataSet or a numbers.Number type"
+        if isinstance(other, numbers.Number):
+            self.values[self.values != -9999] /= other
+            return self
+        else:
+            trans_rs_rd = RasterDataSetUtils.reproject_raster(other, self)
+            dst = self
+            dst.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)] /= \
+                trans_rs_rd.values[np.logical_and(dst.values != -9999, trans_rs_rd.values != -9999)]
+            return dst
 
     def __radd__(self, other):
         if other == 0:
