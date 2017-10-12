@@ -192,7 +192,7 @@ class RasterUtils(object):
                 dist = np.sqrt((contour_combined[-1, 1] - contour[j][0, 1]) ** 2 + \
                                (contour_combined[-1, 0] - contour[j][0, 0]) ** 2)
                 l_dist.append(dist)
-            next_contour = np.argmin(np.array(l_dist))[0] + k
+            next_contour = np.argmin(np.array(l_dist)) + k
             # print(next_contour)
             contour_combined = np.vstack((contour_combined, contour[next_contour]))
             if next_contour != k:
