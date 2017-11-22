@@ -692,7 +692,7 @@ class RasterUtils(object):
     @classmethod
     def mosaic_rasters(cls, l_fns, dst_fn, srcNodata=-9999., dstNodata=-9999., srcSRS=4326, dstSRS=4326):
         """
-        Merge a few rasters together
+        Merge a few rasters together into one single raster: equivalent to Mosaic to new rasters in ArcGIS
         """
         # make some initial assertions so that the function will run smoothly
         assert isinstance(l_fns, list), "l_fns has to be of type list, isinstance(l_fns, list) = False " \
