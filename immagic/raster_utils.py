@@ -690,6 +690,27 @@ class RasterUtils(object):
         raise NotImplementedError
 
     @classmethod
+    def mosaic_rasters(cls, l_fns, dst_fn, srcNodata=-9999., dstNodata=-9999., srcSRS=4326, dstSRS=4326):
+        """
+        Merge a few rasters together
+        """
+        # make some initial assertions so that the function will run smoothly
+        assert isinstance(l_fns, list), "l_fns has to be of type list, isinstance(l_fns, list) = False " \
+                                        "and type(l_fns) = {0} != list".format(type(l_fns))
+        assert len(l_fns) >= 2, "l_fns has to have length larger or equal to 2, len(l_fns) = " \
+                                "{0} < 2".format(len(l_fns))
+
+        for i, item in enumerate(l_fns):
+            assert isinstance(gdal.Open(item), gdal.Dataset), \
+                "The item in l_fns has to be a gdal.DataSet instance, " \
+                "type(#{0}item) = {1} != gdal.DataSet".format(i, type(item))
+
+        warpopts = gdal.WarpOptions(srcNodata=srcNodata, dstNodata=dstNodata,
+                                    srcSRS="EPSG:{0}".format(srcSRS), dstSRS="EPSG:{0}".format(dstSRS))
+        gdal.Warp(l_fns, dst_fn, options=warpopts)
+        return 0
+
+    @classmethod
     def mask_hdf5(cls, hdf5_fn, mask_shapefile_fn, match_raster_fn, dst_fn,
                   hdf5_arr="SWE", hdf5_lat="lat", hdf5_lon="lon",
                   hdf5_idx=0, buffer_size=5, nodata=-9999.):
