@@ -103,7 +103,7 @@ class RasterDataSetUtils(object):
         warpopts = gdal.WarpOptions(srcNodata=srcNodata, dstNodata=dstNodata,
                                     srcSRS="EPSG:{0}".format(srcSRS), dstSRS="EPSG:{0}".format(dstSRS))
         tmp_mosaic_fn = "/tmp/mosaic_{0}.tif".format(rand_str(12))
-        gdal.Warp(l_rasters, tmp_mosaic_fn, options=warpopts)
+        gdal.Warp(tmp_mosaic_fn, l_rasters, options=warpopts)
         dst_ds = gdal.Open(tmp_mosaic_fn)
         mosaiced_ds = RasterDataSet(dst_ds)
         os.remove(tmp_mosaic_fn)

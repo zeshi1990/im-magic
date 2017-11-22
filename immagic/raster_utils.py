@@ -690,7 +690,7 @@ class RasterUtils(object):
         raise NotImplementedError
 
     @classmethod
-    def mosaic_rasters(cls, l_fns, dst_fn, srcNodata=-9999., dstNodata=-9999., srcSRS=4326, dstSRS=4326):
+    def mosaic_rasters(cls, l_fns, dst_fn=None, mem=True, srcNodata=-9999., dstNodata=-9999., srcSRS=4326, dstSRS=4326):
         """
         Merge a few rasters together into one single raster: equivalent to Mosaic to new rasters in ArcGIS
         """
@@ -704,11 +704,16 @@ class RasterUtils(object):
             assert isinstance(gdal.Open(item), gdal.Dataset), \
                 "The item in l_fns has to be a gdal.DataSet instance, " \
                 "type(#{0}item) = {1} != gdal.DataSet".format(i, type(item))
-
-        warpopts = gdal.WarpOptions(srcNodata=srcNodata, dstNodata=dstNodata,
-                                    srcSRS="EPSG:{0}".format(srcSRS), dstSRS="EPSG:{0}".format(dstSRS))
-        gdal.Warp(l_fns, dst_fn, options=warpopts)
-        return 0
+        if mem:
+            warpopts = gdal.WarpOptions(format="MEM", srcNodata=srcNodata, dstNodata=dstNodata,
+                                        srcSRS="EPSG:{0}".format(srcSRS), dstSRS="EPSG:{0}".format(dstSRS))
+            ds = gdal.Warp("", l_fns, options=warpopts)
+            return ds
+        else:
+            warpopts = gdal.WarpOptions(format="GTiff", srcNodata=srcNodata, dstNodata=dstNodata,
+                                        srcSRS="EPSG:{0}".format(srcSRS), dstSRS="EPSG:{0}".format(dstSRS))
+            gdal.Warp(dst_fn, l_fns, options=warpopts)
+            return 0
 
     @classmethod
     def mask_hdf5(cls, hdf5_fn, mask_shapefile_fn, match_raster_fn, dst_fn,
