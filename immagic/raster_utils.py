@@ -712,6 +712,7 @@ class RasterUtils(object):
         else:
             warpopts = gdal.WarpOptions(format="GTiff", srcNodata=srcNodata, dstNodata=dstNodata,
                                         srcSRS="EPSG:{0}".format(srcSRS), dstSRS="EPSG:{0}".format(dstSRS))
+            assert dst_fn is not None
             gdal.Warp(dst_fn, l_fns, options=warpopts)
             return 0
 
